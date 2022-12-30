@@ -11,7 +11,7 @@ Validate and tidy urls as they are captured from users. Configuration is highly 
 Note - this is forked from burnbright/silverstripe-externalurlfield and updated into new composer vendor namespace; making composer installs easier in client projects.
 
 ```sh
-composer require fromholdio/silverstripe-externalurlfield "*@stable"
+composer require sunnysideup/silverstripe-externalurlfield "*@stable"
 ```
 
 ## Requirements
