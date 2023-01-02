@@ -4,6 +4,9 @@ namespace BurnBright\ExternalURLField;
 
 use SilverStripe\Forms\TextField;
 
+use SilverStripe\ORM\FieldType\DBField;
+use SilverStripe\ORM\FieldType\DBHTMLText;
+
 /**
  * ExternalURLField
  *
@@ -183,5 +186,13 @@ class ExternalURLField extends TextField
             return false;
         }
         return true;
+    }
+
+    public function RightTitle()
+    {
+        if($this->value) {
+            return DBHTMLText::create_field(DBHTMLText::class, parent::RightTitle().'<a href="'.$this->value.'">open ↗</a>');
+        }
+        return parent::RightTitle();
     }
 }
