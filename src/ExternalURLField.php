@@ -131,7 +131,7 @@ class ExternalURLField extends TextField
         if ($url) {
             $url = $this->rebuildURL($url);
         }
-        parent::setValue($url, $data);
+        return parent::setValue($url, $data);
     }
 
     /**
