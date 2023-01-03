@@ -15,7 +15,8 @@ class ExternalURLField extends TextField
     /**
      * @var array
      */
-    protected $config;
+    protected $config = [];
+
     /**
      * Default configuration.
      *
@@ -71,10 +72,12 @@ class ExternalURLField extends TextField
 
             return $this;
         }
+
         if (is_array($this->config[$name])) {
             if (! is_array($val)) {
                 user_error("The value for {$name} must be an array");
             }
+
             $this->config[$name] = array_merge($this->config[$name], $val);
         } elseif (isset($this->config[$name])) {
             $this->config[$name] = $val;
@@ -188,22 +191,21 @@ class ExternalURLField extends TextField
         if (! preg_match('#^[a-zA-Z]+://#', $url)) {
             $url = $defaults['scheme'] . '://' . $url;
         }
+
         $parts = parse_url($url);
         if (! $parts) {
             //can't parse url, abort
             return '';
         }
-        foreach ($parts as $part => $value) {
+
+        foreach (array_keys($parts) as $part) {
             if (true === $this->config['removeparts'][$part]) {
                 unset($parts[$part]);
             }
         }
-        //set defaults, if missing
-        foreach ($defaults as $part => $default) {
-            if (! isset($parts[$part])) {
-                $parts[$part] = $default;
-            }
-        }
+
+        // this causes errors!
+        // $parts = array_filter($defaults, fn ($default) => ! isset($parts[$part]));
 
         return rtrim(http_build_url($defaults, $parts), '/');
     }
