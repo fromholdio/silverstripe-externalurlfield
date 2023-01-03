@@ -2,36 +2,39 @@
 
 namespace BurnBright\ExternalURLField;
 
-use BurnBright\ExternalURLField\ExternalURLField;
 use SilverStripe\ORM\FieldType\DBVarchar;
 
 class ExternalURL extends DBVarchar
 {
-    private static $casting = array(
-        "Domain" => ExternalURL::class,
-        "URL" => ExternalURL::class,
-    );
+    private static $casting = [
+        'Domain' => ExternalURL::class,
+        'URL' => ExternalURL::class,
+    ];
 
     /**
      * 2083 is the lowest common denominator when it comes to url lengths.
+     *
+     * @param null|mixed $name
+     * @param mixed      $size
+     * @param mixed      $options
      */
-    public function __construct($name = null, $size = 2083, $options = array())
+    public function __construct($name = null, $size = 2083, $options = [])
     {
         parent::__construct($name, $size, $options);
     }
 
     /**
-     * Remove ugly parts of a url to make it nice
+     * Remove ugly parts of a url to make it nice.
      */
     public function Nice()
     {
         if ($this->value && $parts = parse_url($this->URL())) {
-            $remove = array('scheme', 'user', 'pass', 'port', 'query', 'fragment');
+            $remove = ['scheme', 'user', 'pass', 'port', 'query', 'fragment'];
             foreach ($remove as $part) {
                 unset($parts[$part]);
             }
 
-            return rtrim(http_build_url($parts), "/");
+            return rtrim(http_build_url($parts), '/');
         }
     }
 
@@ -50,11 +53,14 @@ class ExternalURL extends DBVarchar
      */
     public function NoWWW()
     {
-        return ltrim($this->value, "www.");
+        return ltrim($this->value, 'www.');
     }
 
     /**
-     * Scaffold the ExternalURLField for this ExternalURL
+     * Scaffold the ExternalURLField for this ExternalURL.
+     *
+     * @param null|mixed $title
+     * @param null|mixed $params
      */
     public function scaffoldFormField($title = null, $params = null)
     {
