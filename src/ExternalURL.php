@@ -9,6 +9,7 @@ class ExternalURL extends DBVarchar
     private static $casting = [
         'Domain' => ExternalURL::class,
         'URL' => ExternalURL::class,
+        'Path' => 'Varchar',
     ];
 
     /**
@@ -46,6 +47,7 @@ class ExternalURL extends DBVarchar
         if ($this->value) {
             return parse_url($this->URL(), PHP_URL_HOST);
         }
+        return '';
     }
 
     /**
@@ -54,6 +56,14 @@ class ExternalURL extends DBVarchar
     public function NoWWW()
     {
         return ltrim($this->value, 'www.');
+    }
+
+    public function Path()
+    {
+        if ($this->value) {
+            return trim(parse_url($this->URL(), PHP_URL_PATH), '/');
+        }
+        return '';
     }
 
     /**
@@ -73,7 +83,8 @@ class ExternalURL extends DBVarchar
     public function forTemplate()
     {
         if ($this->value) {
-            return $this->URL();
+            return (string) $this->URL();
         }
+        return '';
     }
 }
