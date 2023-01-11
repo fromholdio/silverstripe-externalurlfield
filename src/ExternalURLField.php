@@ -169,7 +169,7 @@ class ExternalURLField extends TextField
     public function RightTitle()
     {
         if ($this->value) {
-            return DBHTMLText::create_field(DBHTMLText::class, parent::RightTitle() . '<a href="' . $this->value . '" target="_blank">open ↗</a>');
+            return DBHTMLText::create_field(DBHTMLText::class, parent::RightTitle() . '<a href="' . $this->value . '" target="_blank" onclick="event.stopPropagation();"rel="noreferrer noopener">open ↗</a>');
         }
 
         return parent::RightTitle();
