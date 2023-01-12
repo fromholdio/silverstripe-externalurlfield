@@ -47,6 +47,7 @@ class ExternalURL extends DBVarchar
         if ($this->value) {
             return parse_url($this->URL(), PHP_URL_HOST);
         }
+
         return '';
     }
 
@@ -63,6 +64,7 @@ class ExternalURL extends DBVarchar
         if ($this->value) {
             return trim(parse_url($this->URL(), PHP_URL_PATH), '/');
         }
+
         return '';
     }
 
@@ -85,6 +87,7 @@ class ExternalURL extends DBVarchar
         if ($this->value) {
             return (string) $this->URL();
         }
+
         return '';
     }
 }
