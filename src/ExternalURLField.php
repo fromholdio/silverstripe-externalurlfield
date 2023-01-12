@@ -28,7 +28,7 @@ class ExternalURLField extends TextField
      */
     private static $default_config = [
         'defaultparts' => [
-            'scheme' => 'http',
+            'scheme' => 'https',
         ],
         'removeparts' => [
             'scheme' => false,
