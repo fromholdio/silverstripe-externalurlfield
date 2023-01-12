@@ -28,8 +28,7 @@
 	],
     "autoload": {
         "psr-4": {
-            "BurnBright\\ExternalURLField\\": "src/",
-            "BurnBright\\ExternalURLField\\Tests\\": "tests/"
+            "BurnBright\\ExternalURLField\\": "src/"
         }
     },
     "minimum-stability": "dev",

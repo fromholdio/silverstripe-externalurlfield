@@ -27,16 +27,21 @@ class ExternalURL extends DBVarchar
     /**
      * Remove ugly parts of a url to make it nice.
      */
-    public function Nice()
+    public function Nice(): string
     {
-        if ($this->value && $parts = parse_url($this->URL())) {
-            $remove = ['scheme', 'user', 'pass', 'port', 'query', 'fragment'];
-            foreach ($remove as $part) {
-                unset($parts[$part]);
+        if ($this->value) {
+            $parts = parse_url($this->URL());
+            if ($parts) {
+                $remove = ['scheme', 'user', 'pass', 'port', 'query', 'fragment'];
+                foreach ($remove as $part) {
+                    unset($parts[$part]);
+                }
             }
 
             return rtrim(http_build_url($parts), '/');
         }
+
+        return '';
     }
 
     /**
