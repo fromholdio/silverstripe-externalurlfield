@@ -4,6 +4,7 @@ namespace BurnBright\ExternalURLField;
 
 use SilverStripe\Forms\TextField;
 use SilverStripe\ORM\FieldType\DBHTMLText;
+use SilverStripe\ORM\DataObject;
 
 /**
  * ExternalURLField.
