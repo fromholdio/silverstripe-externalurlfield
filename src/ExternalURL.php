@@ -61,7 +61,8 @@ class ExternalURL extends DBVarchar
      */
     public function NoWWW()
     {
-        return ltrim($this->value, 'www.');
+        //https://stackoverflow.com/questions/23349257/trim-a-full-string-instead-of-using-trim-with-characters
+        return $url = preg_replace('/^(www\.)*/', '', $this->value);
     }
 
     public function Path()
