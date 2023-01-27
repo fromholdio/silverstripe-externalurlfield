@@ -14,6 +14,7 @@ class ExternalURL extends DBVarchar
 
     /**
      * 2083 is the lowest common denominator when it comes to url lengths.
+     * however, 768 allows searching... 
      *
      * @param null|mixed $name
      * @param mixed      $size
