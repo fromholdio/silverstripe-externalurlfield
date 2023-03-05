@@ -14,7 +14,7 @@ class ExternalURL extends DBVarchar
 
     /**
      * 2083 is the lowest common denominator when it comes to url lengths.
-     * however, 768 allows searching... 
+     * however, 768 allows searching...
      *
      * @param null|mixed $name
      * @param mixed      $size
@@ -63,7 +63,7 @@ class ExternalURL extends DBVarchar
     public function NoWWW()
     {
         //https://stackoverflow.com/questions/23349257/trim-a-full-string-instead-of-using-trim-with-characters
-        return $url = preg_replace('/^(www\.)*/', '', $this->value);
+        return $url = preg_replace('/^(www\.)*/', '', (string) $this->value);
     }
 
     public function Path()
