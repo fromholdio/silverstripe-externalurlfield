@@ -69,7 +69,7 @@ class ExternalURL extends DBVarchar
     public function Path()
     {
         if ($this->value) {
-            return trim(parse_url($this->URL(), PHP_URL_PATH), '/');
+            return trim((string) parse_url((string) $this->URL(), PHP_URL_PATH), '/');
         }
 
         return '';
