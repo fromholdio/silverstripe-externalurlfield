@@ -30,7 +30,7 @@ use SilverStripe\ORM\DataObject;
 class MyDataObject extends DataObject
 {
     private static $db = array(
-        'Website' => 'ExternalURL'
+        'Website' => ''ExternalURL(768)', // set a max length so that we can index it - if you do not need to index it then you may not need to add this. 
     );
 }
 ```
