@@ -164,7 +164,7 @@ class ExternalURLField extends TextField
             }
         }
 
-        return rtrim(http_build_url($defaults, $parts), "/");
+        return http_build_url($defaults, $parts);
     }
 
     /**
