@@ -2,6 +2,7 @@
 
 namespace BurnBright\ExternalURLField;
 
+use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\FieldType\DBVarchar;
 
 class ExternalURL extends DBVarchar
@@ -97,4 +98,43 @@ class ExternalURL extends DBVarchar
 
         return '';
     }
+
+
+    public function saveInto($dataObject)
+    {
+        $fieldName = $this->name;
+        if ($fieldName) {
+            $url =  (string) $this->value;
+            if(! $url) {
+                return '';
+            }
+            $config = Config::inst()->get(ExternalURLField::class, 'default_config');
+            $defaults = $config['defaultparts'];
+            if (! preg_match('#^[a-zA-Z]+://#', $url)) {
+                $url = $defaults['scheme'] . '://' . $url;
+            }
+
+            $parts = parse_url($url);
+            if (! $parts) {
+                //can't parse url, abort
+                return '';
+            }
+
+            foreach (array_keys($parts) as $part) {
+                if (true === $config['removeparts'][$part]) {
+                    unset($parts[$part]);
+                }
+            }
+
+            // this causes errors!
+            // $parts = array_filter($defaults, fn ($default) => ! isset($parts[$part]));
+
+            $dataObject->$fieldName = rtrim(http_build_url($defaults, $parts), '/');
+
+        } else {
+            $class = static::class;
+            throw new \RuntimeException("DBField::saveInto() Called on a nameless '$class' object");
+        }
+    }
+
 }
