@@ -11,7 +11,7 @@
         "field"
     ],
     "require": {
-        "silverstripe/framework": "^4.0",
+        "silverstripe/framework": "^4.0 || ^5.0",
         "silverstripe/vendor-plugin": "^1.0",
         "jakeasmith/http_build_url": "^1"
     },
