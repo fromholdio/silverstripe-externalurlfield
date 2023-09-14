@@ -99,13 +99,12 @@ class ExternalURL extends DBVarchar
         return '';
     }
 
-
     public function saveInto($dataObject)
     {
         $fieldName = $this->name;
         if ($fieldName) {
-            $url =  (string) $this->value;
-            if(! $url) {
+            $url = (string) $this->value;
+            if (! $url) {
                 return '';
             }
             $config = Config::inst()->get(ExternalURLField::class, 'default_config');
@@ -129,12 +128,11 @@ class ExternalURL extends DBVarchar
             // this causes errors!
             // $parts = array_filter($defaults, fn ($default) => ! isset($parts[$part]));
 
-            $dataObject->$fieldName = rtrim(http_build_url($defaults, $parts), '/');
-
+            $dataObject->{$fieldName} = rtrim(http_build_url($defaults, $parts), '/');
         } else {
             $class = static::class;
-            throw new \RuntimeException("DBField::saveInto() Called on a nameless '$class' object");
+
+            throw new \RuntimeException("DBField::saveInto() Called on a nameless '{$class}' object");
         }
     }
-
 }
