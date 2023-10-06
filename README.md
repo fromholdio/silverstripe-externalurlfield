@@ -18,7 +18,7 @@ composer require sunnysideup/silverstripe-externalurlfield "*@stable"
 
 Makes use of the `http_build_url` function from the [PECL pecl_http library](http://php.net/manual/en/ref.http.php). However the module's composer requirements include a [PHP fallback/shim/polyfill](https://github.com/jakeasmith/http_build_url). The composer replacement does check for the presence of `http_build_url`.
 
-* SilverStripe ^4
+* SilverStripe ^4 || ^5
 
 ## DataObject / Template Usage
 
