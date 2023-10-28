@@ -1,6 +1,6 @@
 <?php
 
-namespace BurnBright\ExternalURLField;
+namespace Sunnysideup\ExternalURLField;
 
 use SilverStripe\Forms\TextField;
 use SilverStripe\ORM\DataObject;

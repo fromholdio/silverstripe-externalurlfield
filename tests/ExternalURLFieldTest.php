@@ -1,8 +1,8 @@
 <?php
 
-namespace BurnBright\ExternalURLField\Tests;
+namespace Sunnysideup\ExternalURLField\Tests;
 
-use BurnBright\ExternalURLField\ExternalURLField;
+use Sunnysideup\ExternalURLField\ExternalURLField;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\RequiredFields;
 

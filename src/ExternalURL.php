@@ -1,6 +1,6 @@
 <?php
 
-namespace BurnBright\ExternalURLField;
+namespace Sunnysideup\ExternalURLField;
 
 use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\FieldType\DBVarchar;

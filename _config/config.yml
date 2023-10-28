@@ -3,4 +3,4 @@ Name: externalurlfield
 ---
 SilverStripe\Core\Injector\Injector:
   ExternalURL:
-    class: BurnBright\ExternalURLField\ExternalURL
+    class: Sunnysideup\ExternalURLField\ExternalURL

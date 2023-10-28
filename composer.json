@@ -18,16 +18,16 @@
         "phpunit/phpunit": "^5.7",
         "squizlabs/php_codesniffer": "^3.0"
     },
-	"authors": [
-		{
-			"name": "Jeremy Shipman",
-			"homepage": "https://github.com/jedateach",
-			"role": "Developer"
-		}
-	],
+    "authors": [
+        {
+            "name": "Jeremy Shipman",
+            "homepage": "https://github.com/jedateach",
+            "role": "Developer"
+        }
+    ],
     "autoload": {
         "psr-4": {
-            "BurnBright\\ExternalURLField\\": "src/"
+            "Sunnysideup\\ExternalURLField\\": "src/"
         }
     },
     "minimum-stability": "dev",

@@ -1,6 +1,6 @@
 # SilverStripe External URL Field
 
-[![Build Status](https://travis-ci.org/burnbright/silverstripe-externalurlfield.svg?branch=master)](https://travis-ci.org/burnbright/silverstripe-externalurlfield) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/burnbright/silverstripe-externalurlfield/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/burnbright/silverstripe-externalurlfield/?branch=master) [![Code Coverage](https://scrutinizer-ci.com/g/burnbright/silverstripe-externalurlfield/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/burnbright/silverstripe-externalurlfield/?branch=master)
+[![Build Status](https://travis-ci.org/sunnysideup/silverstripe-externalurlfield.svg?branch=master)](https://travis-ci.org/sunnysideup/silverstripe-externalurlfield) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/sunnysideup/silverstripe-externalurlfield/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/sunnysideup/silverstripe-externalurlfield/?branch=master) [![Code Coverage](https://scrutinizer-ci.com/g/sunnysideup/silverstripe-externalurlfield/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/sunnysideup/silverstripe-externalurlfield/?branch=master)
 
 Provides a `DBField` and `FormField` for handling external URLs.
 
@@ -8,7 +8,7 @@ Validate and tidy urls as they are captured from users. Configuration is highly 
 
 ## Installation
 
-Note - this is forked from burnbright/silverstripe-externalurlfield and updated into new composer vendor namespace; making composer installs easier in client projects.
+Note - this is forked from sunnysideup/silverstripe-externalurlfield and updated into new composer vendor namespace; making composer installs easier in client projects.
 
 ```sh
 composer require sunnysideup/silverstripe-externalurlfield "*@stable"
@@ -18,7 +18,7 @@ composer require sunnysideup/silverstripe-externalurlfield "*@stable"
 
 Makes use of the `http_build_url` function from the [PECL pecl_http library](http://php.net/manual/en/ref.http.php). However the module's composer requirements include a [PHP fallback/shim/polyfill](https://github.com/jakeasmith/http_build_url). The composer replacement does check for the presence of `http_build_url`.
 
-* SilverStripe ^4 || ^5
+-   SilverStripe ^4 || ^5
 
 ## DataObject / Template Usage
 
@@ -30,7 +30,7 @@ use SilverStripe\ORM\DataObject;
 class MyDataObject extends DataObject
 {
     private static $db = array(
-        'Website' => 'ExternalURL(768)', // set a max length so that we can index it - if you do not need to index it then you may not need to add this. 
+        'Website' => 'ExternalURL(768)', // set a max length so that we can index it - if you do not need to index it then you may not need to add this.
     );
 }
 ```
@@ -45,6 +45,7 @@ class MyDataObject extends DataObject
 ```
 
 Given the url `http://username:password@www.hostname.com:81/path?arg=value#anchor`, the above produces:
+
 ```
 Website: http://username:password@www.hostname.com:81/path?arg=value#anchor
 Website Nice: www.hostname.com/path
@@ -62,7 +63,7 @@ The field uses the html5 `type="url"` attribute.
 You can configure various parts of the url to be stripped out, or populated with defaults when missing.
 
 ```php
-use BurnBright\ExternalURLField\ExternalURLField;
+use Sunnysideup\ExternalURLField\ExternalURLField;
 
 //default
 $websitefield = new ExternalURLField('Website');
@@ -103,6 +104,7 @@ $websitefield->setConfig('removeparts',array(
 Enabled by default, the html5 validation sets the field type atribute to `url`, and adds a pattern attribute which is set to `https?://.+`.
 
 Disable using the `html5validation` config:
+
 ```php
 $field->setConfig("html5validation", false);
 ```
