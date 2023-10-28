@@ -2,6 +2,7 @@
 
 namespace Sunnysideup\ExternalURLField;
 
+use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\FieldType\DBField;
 
 class ExternalURLFinder
@@ -13,11 +14,12 @@ class ExternalURLFinder
      *
      * @param string $link
      * @param string $className
-     * @param string|null $field
+     * @param string $field
+     * @param bool|null $removeFinalSlash
      *
-     * @return DataObject|null
+     * @return DataList
      */
-    public static function find(string $link, string $className, string $field, ?bool $removeFinalSlash = true)
+    public static function find(string $link, string $className, string $field, ?bool $removeFinalSlash = true): DataList
     {
         $link = strtolower($link);
         if($removeFinalSlash) {
@@ -40,6 +42,6 @@ class ExternalURLFinder
             'http://' . $domainWWW,
             'http://' . $domainNoWWW,
         ];
-        return $className::get()->filter([$field => $items])->first();
+        return $className::get()->filter([$field => $items]);
     }
 }
