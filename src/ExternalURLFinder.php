@@ -29,7 +29,7 @@ class ExternalURLFinder
         $domain = $linkObject->Domain();
         if(strpos($domain, 'www.') === 0) {
             $domainWWW = $domain;
-            $domainNoWWW = $linkObject->Domain()->noWWW();
+            $domainNoWWW = substr($domain, 4);
         } else {
             $domainWWW = 'www' . $domain;
             $domainNoWWW = $domain;
