@@ -75,7 +75,7 @@ class ExternalURLField extends TextField
         }
 
         if (is_array($this->config[$name])) {
-            if (! is_array($val)) {
+            if (!is_array($val)) {
                 user_error("The value for {$name} must be an array");
             }
 
@@ -111,7 +111,7 @@ class ExternalURLField extends TextField
         $parentAttributes = parent::getAttributes();
         $attributes = [];
 
-        if (! isset($parentAttributes['placeholder'])) {
+        if (!isset($parentAttributes['placeholder'])) {
             $attributes['placeholder'] = $this->config['defaultparts']['scheme'] . '://example.com'; //example url
         }
 
@@ -154,7 +154,7 @@ class ExternalURLField extends TextField
     {
         $this->value = trim($this->value);
         $regex = $this->config['validregex'];
-        if ($this->value && $regex && ! preg_match($regex, $this->value)) {
+        if ($this->value && $regex && !preg_match($regex, $this->value)) {
             $validator->validationError(
                 $this->name,
                 _t('ExternalURLField.VALIDATION', 'Please enter a valid URL'),
@@ -189,12 +189,12 @@ class ExternalURLField extends TextField
     protected function rebuildURL($url)
     {
         $defaults = $this->config['defaultparts'];
-        if (! preg_match('#^[a-zA-Z]+://#', $url)) {
+        if (!preg_match('#^[a-zA-Z]+://#', $url)) {
             $url = $defaults['scheme'] . '://' . $url;
         }
 
         $parts = parse_url($url);
-        if (! $parts) {
+        if (!$parts) {
             //can't parse url, abort
             return '';
         }
