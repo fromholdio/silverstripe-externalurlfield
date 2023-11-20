@@ -4,6 +4,7 @@ namespace Sunnysideup\ExternalURLField;
 
 use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\FieldType\DBVarchar;
+use RuntimeException;
 
 class ExternalURL extends DBVarchar
 {
@@ -101,38 +102,35 @@ class ExternalURL extends DBVarchar
 
     public function saveInto($dataObject)
     {
-        $fieldName = $this->name;
-        if ($fieldName) {
-            $url = (string) $this->value;
-            if (! $url) {
-                return '';
-            }
+        $url = (string) $this->value;
+        if ($url) {
             $config = Config::inst()->get(ExternalURLField::class, 'default_config');
             $defaults = $config['defaultparts'];
-            if (! preg_match('#^[a-zA-Z]+://#', $url)) {
+            if (!preg_match('#^[a-zA-Z]+://#', $url)) {
                 $url = $defaults['scheme'] . '://' . $url;
             }
 
             $parts = parse_url($url);
-            if (! $parts) {
+            if ($parts) {
                 //can't parse url, abort
-                return '';
-            }
 
-            foreach (array_keys($parts) as $part) {
-                if (true === $config['removeparts'][$part]) {
-                    unset($parts[$part]);
+                foreach (array_keys($parts) as $part) {
+                    if (true === $config['removeparts'][$part]) {
+                        unset($parts[$part]);
+                    }
                 }
+
+                // this causes errors!
+                // $parts = array_filter($defaults, fn ($default) => ! isset($parts[$part]));
+
+                $this->value = rtrim(http_build_url($defaults, $parts), '/');
+            } else {
+                $this->value = '';
             }
-
-            // this causes errors!
-            // $parts = array_filter($defaults, fn ($default) => ! isset($parts[$part]));
-
-            $dataObject->{$fieldName} = rtrim(http_build_url($defaults, $parts), '/');
         } else {
-            $class = static::class;
+            $this->value = '';
 
-            throw new \RuntimeException("DBField::saveInto() Called on a nameless '{$class}' object");
         }
+        parent::saveInto($dataObject);
     }
 }
