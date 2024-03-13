@@ -10,6 +10,7 @@ class ExternalURL extends DBVarchar
 {
     private static $casting = [
         'Domain' => ExternalURL::class,
+        'DomainShort' => 'Varchar',
         'URL' => ExternalURL::class,
         'Path' => 'Varchar',
     ];
@@ -54,6 +55,22 @@ class ExternalURL extends DBVarchar
     {
         if ($this->value) {
             return parse_url($this->URL(), PHP_URL_HOST);
+        }
+
+        return '';
+    }
+
+    /**
+     * Get just the domain of the url without the www subdomain and without https://.
+     */
+    public function DomainShort()
+    {
+        if ($this->value) {
+            $parsedUrl = parse_url($this->URL());
+            $host = $parsedUrl['host'] ?? '';
+            // Remove 'www.' if present.
+            $domain = preg_replace('/^www\./', '', $host);
+            return $domain;
         }
 
         return '';
