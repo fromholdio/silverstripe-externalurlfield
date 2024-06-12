@@ -4,7 +4,6 @@ namespace Sunnysideup\ExternalURLField;
 
 use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\FieldType\DBVarchar;
-use RuntimeException;
 
 class ExternalURL extends DBVarchar
 {
@@ -120,10 +119,10 @@ class ExternalURL extends DBVarchar
     public function saveInto($dataObject)
     {
         $url = (string) $this->value;
-        if ($url) {
+        if ($url !== '' && $url !== '0') {
             $config = Config::inst()->get(ExternalURLField::class, 'default_config');
             $defaults = $config['defaultparts'];
-            if (!preg_match('#^[a-zA-Z]+://#', $url)) {
+            if (! preg_match('#^[a-zA-Z]+://#', $url)) {
                 $url = $defaults['scheme'] . '://' . $url;
             }
 
@@ -146,7 +145,6 @@ class ExternalURL extends DBVarchar
             }
         } else {
             $this->value = '';
-
         }
         parent::saveInto($dataObject);
     }

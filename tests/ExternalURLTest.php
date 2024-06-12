@@ -2,9 +2,9 @@
 
 namespace Sunnysideup\ExternalURLField\Tests;
 
+use SilverStripe\Dev\SapphireTest;
 use Sunnysideup\ExternalURLField\ExternalURL;
 use Sunnysideup\ExternalURLField\ExternalURLField;
-use SilverStripe\Dev\SapphireTest;
 
 /**
  * @internal
