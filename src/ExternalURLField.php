@@ -152,7 +152,7 @@ class ExternalURLField extends TextField
      */
     public function validate($validator)
     {
-        $this->value = trim($this->value);
+        $this->value = trim(string: (string) $this->value);
         $regex = $this->config['validregex'];
         if ($this->value && $regex && ! preg_match($regex, $this->value)) {
             $validator->validationError(
