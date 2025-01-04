@@ -14,41 +14,43 @@ use SilverStripe\UserForms\Model\EditableFormField;
  *
  * @package userforms
  */
-class EditableExternalURLField extends EditableFormField
-{
-    private static $singular_name = 'URL Field';
-
-    private static $plural_name = 'URL Fields';
-
-    private static $has_placeholder = true;
-
-    private static $table_name = 'EditableExternalURLField';
-
-    public function getSetsOwnError()
+if (class_exists(EditableFormField::class)) {
+    class EditableExternalURLField extends EditableFormField
     {
-        return true;
-    }
+        private static $singular_name = 'URL Field';
 
-    public function getFormField()
-    {
-        $field = ExternalURLField::create($this->Name, $this->Title ?: false, $this->Default)
-            ->setFieldHolderTemplate(EditableFormField::class . '_holder')
-            ->setTemplate(EditableFormField::class);
+        private static $plural_name = 'URL Fields';
 
-        $this->doUpdateFormField($field);
+        private static $has_placeholder = true;
 
-        return $field;
-    }
+        private static $table_name = 'EditableExternalURLField';
 
-    /**
-     * Updates a formfield with the additional metadata specified by this field
-     *
-     * @param FormField $field
-     */
-    protected function updateFormField($field)
-    {
-        parent::updateFormField($field);
+        public function getSetsOwnError()
+        {
+            return true;
+        }
 
-        $field->setAttribute('data-rule-url', true);
+        public function getFormField()
+        {
+            $field = ExternalURLField::create($this->Name, $this->Title ?: false, $this->Default)
+                ->setFieldHolderTemplate(EditableFormField::class . '_holder')
+                ->setTemplate(EditableFormField::class);
+
+            $this->doUpdateFormField($field);
+
+            return $field;
+        }
+
+        /**
+         * Updates a formfield with the additional metadata specified by this field
+         *
+         * @param FormField $field
+         */
+        protected function updateFormField($field)
+        {
+            parent::updateFormField($field);
+
+            $field->setAttribute('data-rule-url', true);
+        }
     }
 }
