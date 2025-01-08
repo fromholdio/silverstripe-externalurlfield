@@ -103,6 +103,8 @@ class ExternalURLField extends TextField
         $parentAttributes = parent::getAttributes();
         $attributes = array();
 
+        $attributes['inputmode'] = 'url';
+
         if (!isset($parentAttributes['placeholder'])) {
             $attributes['placeholder'] = $this->config['defaultparts']['scheme'] . "://example.com"; //example url
         }
