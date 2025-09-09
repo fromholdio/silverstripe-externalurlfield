@@ -3,6 +3,7 @@
 namespace BurnBright\ExternalURLField;
 
 use SilverStripe\Forms\TextField;
+use SilverStripe\Core\Validation\ValidationResult;
 
 /**
  * ExternalURLField
@@ -172,18 +173,19 @@ class ExternalURLField extends TextField
     /**
      * Server side validation, using a regular expression.
      */
-    public function validate($validator)
+    public function validate(): ValidationResult
     {
-        $this->value = trim($this->value);
-        $regex = $this->config['validregex'];
+        $result = parent::validate();
+
+        $this->value = trim((string) $this->value);
+        $regex = $this->getConfig('validregex');
+
         if ($this->value && $regex && !preg_match($regex, $this->value)) {
-            $validator->validationError(
-                $this->name,
-                _t('ExternalURLField.VALIDATION', "Please enter a valid URL"),
-                "validation"
+            $result->addError(
+                _t(__CLASS__ . '.VALIDATION', 'Please enter a valid URL')
             );
-            return false;
         }
-        return true;
+
+        return $result;
     }
 }

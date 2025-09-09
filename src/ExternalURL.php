@@ -3,6 +3,7 @@
 namespace BurnBright\ExternalURLField;
 
 use BurnBright\ExternalURLField\ExternalURLField;
+use SilverStripe\Forms\FormField;
 use SilverStripe\ORM\FieldType\DBVarchar;
 
 class ExternalURL extends DBVarchar
@@ -64,7 +65,7 @@ class ExternalURL extends DBVarchar
     /**
      * Scaffold the ExternalURLField for this ExternalURL
      */
-    public function scaffoldFormField($title = null, $params = null)
+    public function scaffoldFormField($title = null, $params = null): ?FormField
     {
         $field = new ExternalURLField($this->name, $title);
         $field->setMaxLength($this->getSize());
@@ -72,10 +73,12 @@ class ExternalURL extends DBVarchar
         return $field;
     }
 
-    public function forTemplate()
+    public function forTemplate(): string
     {
         if ($this->value) {
             return $this->URL();
         }
+
+        return '';
     }
 }

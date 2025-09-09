@@ -2,9 +2,9 @@
 
 namespace BurnBright\ExternalURLField\Tests;
 
-use BurnBright\ExternalURLField\ExternalURLField;
 use SilverStripe\Dev\SapphireTest;
-use SilverStripe\Forms\RequiredFields;
+use BurnBright\ExternalURLField\ExternalURLField;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 
 class ExternalURLFieldTest extends SapphireTest
 {
@@ -85,20 +85,19 @@ class ExternalURLFieldTest extends SapphireTest
     public function testValidation()
     {
         $field = new ExternalURLField("URL", "URL");
-        $validator = new RequiredFields();
 
         $field->setValue(
             "http://username:password@www.hostname.com:81/path?arg=value#anchor"
         );
-        $this->assertTrue($field->validate($validator));
+        $this->assertTrue($field->validate()->isValid());
 
         $field->setValue("");
-        $this->assertTrue($field->validate($validator));
+        $this->assertTrue($field->validate()->isValid());
 
         $field->setValue("asefasdfasfasfasfasdfasfasdfas");
-        $this->assertFalse($field->validate($validator));
+        $this->assertFalse($field->validate()->isValid());
 
         $field->setValue("http://3628126748");
-        $this->assertFalse($field->validate($validator));
+        $this->assertFalse($field->validate()->isValid());
     }
 }
