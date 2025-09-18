@@ -1,6 +1,6 @@
 <?php
 
-namespace BurnBright\ExternalURLField;
+namespace Fromholdio\ExternalURLField;
 
 use SilverStripe\Forms\FormField;
 use SilverStripe\UserForms\Model\EditableFormField;

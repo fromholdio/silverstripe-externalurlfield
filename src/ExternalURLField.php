@@ -175,9 +175,9 @@ class ExternalURLField extends TextField
     public function validate(): ValidationResult
     {
         $result = parent::validate();
-        $this->value = trim($this->value);
+        $this->value = trim($this->value ?? '');
         $regex = $this->config['validregex'];
-        if ($this->value && $regex && !preg_match($regex, $this->value)) {
+        if ($this->value && $regex && !preg_match($regex, $this->value ?? '')) {
             $result->addFieldError(
                 $this->name,
                 _t('ExternalURLField.VALIDATION', "Please enter a valid URL"),

@@ -1,5 +1,0 @@
-mappings:
-  ExternalURL: BurnBright\ExternalURLField\ExternalURL
-  ExternalURLField: BurnBright\ExternalURLField\ExternalURLField
-  ExternalURLFieldTest: BurnBright\ExternalURLField\Tests\ExternalURLFieldTest
-  ExternalURLTest: BurnBright\ExternalURLField\Tests\ExternalURLTest

@@ -1,14 +1,12 @@
 # SilverStripe External URL Field
 
-[![Build Status](https://travis-ci.org/burnbright/silverstripe-externalurlfield.svg?branch=master)](https://travis-ci.org/burnbright/silverstripe-externalurlfield) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/burnbright/silverstripe-externalurlfield/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/burnbright/silverstripe-externalurlfield/?branch=master) [![Code Coverage](https://scrutinizer-ci.com/g/burnbright/silverstripe-externalurlfield/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/burnbright/silverstripe-externalurlfield/?branch=master)
-
 Provides a `DBField` and `FormField` for handling external URLs.
 
 Validate and tidy urls as they are captured from users. Configuration is highly flexible. Makes use of php's `parse_url` and `http_build_url` to do the actual work.
 
 ## Installation
 
-Note - this is forked from burnbright/silverstripe-externalurlfield and updated into new composer vendor namespace; making composer installs easier in client projects.
+Note - this is forked from [burnbright/silverstripe-externalurlfield](https://github.com/burnbright/silverstripe-externalurlfield).
 
 ```sh
 composer require fromholdio/silverstripe-externalurlfield "*@stable"
@@ -18,7 +16,7 @@ composer require fromholdio/silverstripe-externalurlfield "*@stable"
 
 Makes use of the `http_build_url` function from the [PECL pecl_http library](http://php.net/manual/en/ref.http.php). However the module's composer requirements include a [PHP fallback/shim/polyfill](https://github.com/jakeasmith/http_build_url). The composer replacement does check for the presence of `http_build_url`.
 
-* SilverStripe ^4
+* SilverStripe ^6
 
 ## DataObject / Template Usage
 
@@ -62,7 +60,7 @@ The field uses the html5 `type="url"` attribute.
 You can configure various parts of the url to be stripped out, or populated with defaults when missing.
 
 ```php
-use BurnBright\ExternalURLField\ExternalURLField;
+use Fromholdio\ExternalURLField\ExternalURLField;
 
 //default
 $websitefield = new ExternalURLField('Website');
