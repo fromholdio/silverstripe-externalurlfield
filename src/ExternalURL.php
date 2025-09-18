@@ -1,8 +1,8 @@
 <?php
 
-namespace BurnBright\ExternalURLField;
+namespace Fromholdio\ExternalURLField;
 
-use BurnBright\ExternalURLField\ExternalURLField;
+use SilverStripe\Forms\FormField;
 use SilverStripe\ORM\FieldType\DBVarchar;
 
 class ExternalURL extends DBVarchar
@@ -23,40 +23,46 @@ class ExternalURL extends DBVarchar
     /**
      * Remove ugly parts of a url to make it nice
      */
-    public function Nice()
+    public function Nice(): string
     {
-        if ($this->value && $parts = parse_url($this->URL())) {
-            $remove = array('scheme', 'user', 'pass', 'port', 'query', 'fragment');
-            foreach ($remove as $part) {
-                unset($parts[$part]);
+        $nice = '';
+        if (!empty($this->value)) {
+            $parts = parse_url($this->URL());
+            if (!empty($parts))
+            {
+                $remove = ['scheme', 'user', 'pass', 'port', 'query', 'fragment'];
+                foreach ($remove as $part) {
+                    unset($parts[$part]);
+                }
+                $nice = http_build_url($parts);
             }
-
-            return http_build_url($parts);
         }
+        return $nice;
     }
 
     /**
      * Get just the domain of the url.
      */
-    public function Domain()
+    public function Domain(): string
     {
-        if ($this->value) {
-            return parse_url($this->URL(), PHP_URL_HOST);
-        }
+        return empty($this->value) ? '' : parse_url($this->URL(), PHP_URL_HOST);
     }
 
     /**
      * Remove the www subdomain, if present.
      */
-    public function NoWWW()
+    public function NoWWW(): string
     {
-        $url = $this->value;
-        $parts = parse_url($this->URL());
-        if (!empty($url) && !empty($parts)) {
-            if (isset($parts['host'])) {
-                $parts['host'] = preg_replace('#^www\.(.+\.)#i', '$1', $parts['host']);
+        $url = '';
+        if (!empty($this->Value)) {
+            $parts = parse_url($this->URL());
+            if (!empty($parts))
+            {
+                if (isset($parts['host'])) {
+                    $parts['host'] = preg_replace('#^www\.(.+\.)#i', '$1', $parts['host']);
+                }
+                $url = http_build_url($parts);
             }
-            $url = http_build_url($parts);
         }
         return $url;
     }
@@ -64,18 +70,15 @@ class ExternalURL extends DBVarchar
     /**
      * Scaffold the ExternalURLField for this ExternalURL
      */
-    public function scaffoldFormField($title = null, $params = null)
+    public function scaffoldFormField(?string $title = null, array $params = []): ?FormField
     {
-        $field = new ExternalURLField($this->name, $title);
+        $field = ExternalURLField::create($this->name, $title);
         $field->setMaxLength($this->getSize());
-
         return $field;
     }
 
-    public function forTemplate()
+    public function forTemplate(): string
     {
-        if ($this->value) {
-            return $this->URL();
-        }
+        return empty($this->value) ? '' : nl2br($this->URL() ?? '');
     }
 }

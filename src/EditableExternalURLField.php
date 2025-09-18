@@ -50,7 +50,6 @@ class EditableExternalURLField extends EditableFormField
     protected function updateFormField($field)
     {
         parent::updateFormField($field);
-
         $field->setAttribute('data-rule-url', true);
     }
 }

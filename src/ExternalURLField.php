@@ -1,8 +1,10 @@
 <?php
 
-namespace BurnBright\ExternalURLField;
+namespace Fromholdio\ExternalURLField;
 
+use SilverStripe\Core\Validation\ValidationResult;
 use SilverStripe\Forms\TextField;
+use SilverStripe\Model\ModelData;
 
 /**
  * ExternalURLField
@@ -18,11 +20,11 @@ class ExternalURLField extends TextField
      * @see https://gist.github.com/dperini/729294
      * @var array
      */
-    private static $default_config = array(
-        'defaultparts' => array(
+    private static $default_config = [
+        'defaultparts' => [
             'scheme' => 'http'
-        ),
-        'removeparts' => array(
+        ],
+        'removeparts' => [
             'scheme' => false,
             'user' => true,
             'pass' => true,
@@ -31,13 +33,13 @@ class ExternalURLField extends TextField
             'path' => false,
             'query' => false,
             'fragment' => false
-        ),
+        ],
         'html5validation' => true,
         'validregex' => '%^(?:(?:https?|ftp)://)(?:\S+(?::\S*)'
             . '?@|\d{1,3}(?:\.\d{1,3}){3}|(?:(?:[a-z\d\x{00a1}-\x{ffff}]+-?)*[a-z\d\x{00a1}-\x{ffff}]+)'
             . '(?:\.(?:[a-z\d\x{00a1}-\x{ffff}]+-?)*[a-z\d\x{00a1}-\x{ffff}]+)*(?:\.[a-z\x{00a1}-\x{ffff}]{2,6}))'
             . '(?::\d+)?(?:[^\s]*)?$%iu'
-    );
+    ];
 
     /**
      * @var array
@@ -47,11 +49,10 @@ class ExternalURLField extends TextField
     public function __construct($name, $title = null, $value = null)
     {
         $this->config = $this->config()->default_config;
-
         parent::__construct($name, $title, $value);
     }
 
-    public function Type()
+    public function Type(): string
     {
         return 'url text';
     }
@@ -60,7 +61,7 @@ class ExternalURLField extends TextField
      * @param string $name
      * @param mixed $val
      */
-    public function setConfig($name, $val = null)
+    public function setConfig($name, $val = null): self
     {
         if (is_array($name) && $val == null) {
             foreach ($name as $n => $value) {
@@ -88,7 +89,7 @@ class ExternalURLField extends TextField
     public function getConfig($name = null)
     {
         if ($name) {
-            return isset($this->config[$name]) ? $this->config[$name] : null;
+            return $this->config[$name] ?? null;
         } else {
             return $this->config;
         }
@@ -98,42 +99,42 @@ class ExternalURLField extends TextField
      * Set additional attributes
      * @return array Attributes
      */
-    public function getAttributes()
+    public function getAttributes(): array
     {
         $parentAttributes = parent::getAttributes();
-        $attributes = array();
+        $attributes = [];
 
         $attributes['inputmode'] = 'url';
 
         if (!isset($parentAttributes['placeholder'])) {
-            $attributes['placeholder'] = $this->config['defaultparts']['scheme'] . "://example.com"; //example url
+            $attributes['placeholder'] = $this->config['defaultparts']['scheme'] . "://example.com";
         }
 
         if ($this->config['html5validation']) {
-            $attributes += array(
+            $attributes += [
                 'type' => 'url', //html5 field type
                 'pattern' => 'https?://.+', //valid urls only
-            );
+            ];
         }
 
-        return array_merge(
-            $parentAttributes,
-            $attributes
-        );
+        return [
+            ...$parentAttributes,
+            ...$attributes
+        ];
     }
 
     /**
-     * Rebuild url on save
-     * @param string $url
-     * @param array|DataObject $data {@see Form::loadDataFrom}
+     * @param mixed $value URL
+     * @param array|ModelData $data {@see Form::loadDataFrom}
      * @return $this
      */
-    public function setValue($url, $data = null)
+    public function setValue($value, $data = null): self
     {
-        if ($url) {
-            $url = $this->rebuildURL($url);
+        if (!empty($value)) {
+            $value = $this->rebuildURL($value);
         }
-        parent::setValue($url, $data);
+        parent::setValue($value, $data);
+        return $this;
     }
 
     /**
@@ -143,7 +144,7 @@ class ExternalURLField extends TextField
      * Remove any trailing slash, and rebuild.
      * @return string
      */
-    protected function rebuildURL($url)
+    protected function rebuildURL($url): string
     {
         $defaults = $this->config['defaultparts'];
         if (!preg_match('#^[a-zA-Z]+://#', $url)) {
@@ -152,7 +153,7 @@ class ExternalURLField extends TextField
         $parts = parse_url($url);
         if (!$parts) {
             //can't parse url, abort
-            return "";
+            return '';
         }
         foreach ($parts as $part => $value) {
             if ($this->config['removeparts'][$part] === true) {
@@ -165,25 +166,24 @@ class ExternalURLField extends TextField
                 $parts[$part] = $default;
             }
         }
-
         return http_build_url($defaults, $parts);
     }
 
     /**
      * Server side validation, using a regular expression.
      */
-    public function validate($validator)
+    public function validate(): ValidationResult
     {
+        $result = parent::validate();
         $this->value = trim($this->value);
         $regex = $this->config['validregex'];
         if ($this->value && $regex && !preg_match($regex, $this->value)) {
-            $validator->validationError(
+            $result->addFieldError(
                 $this->name,
                 _t('ExternalURLField.VALIDATION', "Please enter a valid URL"),
                 "validation"
             );
-            return false;
         }
-        return true;
+        return $result;
     }
 }
