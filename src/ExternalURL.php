@@ -61,6 +61,11 @@ class ExternalURL extends DBVarchar
                 if (isset($parts['host'])) {
                     $parts['host'] = preg_replace('#^www\.(.+\.)#i', '$1', $parts['host']);
                 }
+                // URL() adds "http://" to values without a scheme, such as the output of Domain().
+                // Don't keep a scheme the value didn't have, so $Website.Domain.NoWWW gives "hostname.com".
+                if (!parse_url($this->value, PHP_URL_SCHEME)) {
+                    unset($parts['scheme']);
+                }
                 $url = http_build_url($parts);
             }
         }
