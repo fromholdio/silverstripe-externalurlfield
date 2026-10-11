@@ -48,6 +48,13 @@ class ExternalURLField extends TextField
      */
     protected $config;
 
+    /**
+     * The last non-empty value set that could not be rebuilt into a url, kept so the
+     * field can redisplay it and fail validation. The field's value is left empty, so
+     * this input is never saved. Null when the value was rebuilt or intentionally empty.
+     */
+    protected ?string $unbuildableValue = null;
+
     public function __construct($name, $title = null, $value = null)
     {
         $this->config = $this->config()->default_config;
@@ -132,11 +139,30 @@ class ExternalURLField extends TextField
      */
     public function setValue($value, $data = null): self
     {
+        $this->unbuildableValue = null;
         if (!empty($value)) {
-            $value = $this->rebuildURL($value);
+            $rebuiltValue = $this->rebuildURL($value);
+            if ($rebuiltValue === '')
+            {
+                $this->unbuildableValue = (string) $value;
+            }
+            $value = $rebuiltValue;
         }
         parent::setValue($value, $data);
         return $this;
+    }
+
+    /**
+     * Redisplay input that could not be rebuilt, so submitting the form again does
+     * not clear a saved url without the user knowing.
+     */
+    public function getFormattedValue(): mixed
+    {
+        if (!is_null($this->unbuildableValue))
+        {
+            return $this->unbuildableValue;
+        }
+        return parent::getFormattedValue();
     }
 
     /**
@@ -168,6 +194,12 @@ class ExternalURLField extends TextField
                 $parts[$part] = $default;
             }
         }
+        //an http(s) url without a host is not valid, abort rather than let the uri builder default to localhost
+        $scheme = strtolower($parts['scheme'] ?? '');
+        if (($scheme === 'http' || $scheme === 'https') && ($parts['host'] ?? '') === '')
+        {
+            return '';
+        }
         try
         {
             return (string) Uri::fromParts($parts);
@@ -181,13 +213,14 @@ class ExternalURLField extends TextField
 
     /**
      * Server side validation, using a regular expression.
+     * A value that could not be rebuilt into a url is always invalid, whatever the regular expression.
      */
     public function validate(): ValidationResult
     {
         $result = parent::validate();
         $this->value = trim($this->value ?? '');
         $regex = $this->config['validregex'];
-        if ($this->value && $regex && !preg_match($regex, $this->value ?? '')) {
+        if (!is_null($this->unbuildableValue) || ($this->value && $regex && !preg_match($regex, $this->value ?? ''))) {
             $result->addFieldError(
                 $this->name,
                 _t('ExternalURLField.VALIDATION', "Please enter a valid URL"),

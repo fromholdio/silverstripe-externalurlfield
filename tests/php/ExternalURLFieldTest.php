@@ -156,21 +156,174 @@ class ExternalURLFieldTest extends SapphireTest
             'space in hostname' => ['http://exa mple.com/path'],
             'backslash in hostname' => ['exa\\mple.com/path'],
             'credentials before an invalid hostname' => ['http://user:pass@exa\\mple.com/path'],
-            'port out of range' => ['http://example.com:99999/path'],
         ];
     }
 
     /**
-     * Input that cannot form a valid URI is cleared, the field's existing response to
-     * a URL it cannot parse, rather than throwing out of `setValue()` or being stored
-     * without the configured parts removed.
+     * Input that cannot form a valid URI fails validation, even on an optional field,
+     * rather than throwing out of `setValue()` or being saved as an empty value. The
+     * field's value stays empty, so the input is never stored without the configured
+     * parts, such as credentials, removed. The input is redisplayed, so submitting the
+     * form again fails validation again instead of clearing a saved url.
      */
     #[DataProvider('provideInvalidInput')]
-    public function testInvalidInputIsClearedWithoutException(string $input): void
+    public function testInvalidInputFailsValidation(string $input): void
     {
         $field = ExternalURLField::create('Website');
         $field->setValue($input);
 
         $this->assertSame('', $field->getValue());
+        $this->assertSame('', $field->dataValue());
+        $this->assertSame($input, $field->getFormattedValue());
+        $this->assertSame($input, $field->getAttributes()['value']);
+        $this->assertFieldIsInvalid($field);
+    }
+
+    /**
+     * Input `parse_url` cannot read, such as a port out of range, used to be cleared
+     * without a message. It now fails validation the same way as other input the
+     * field cannot rebuild.
+     */
+    public function testUnparseableInputFailsValidation(): void
+    {
+        $field = ExternalURLField::create('Website');
+        $field->setValue('http://example.com:99999/path');
+
+        $this->assertSame('', $field->getValue());
+        $this->assertFieldIsInvalid($field);
+    }
+
+    /**
+     * Invalid input fails validation however the regular expression is configured,
+     * because the field could not rebuild the url at all.
+     */
+    #[DataProvider('provideRegexConfig')]
+    public function testInvalidInputFailsValidationWithAnyRegex(?string $regex): void
+    {
+        $field = ExternalURLField::create('Website');
+        $this->configureRegex($field, $regex);
+        $field->setValue('http://user:pass@exa\\mple.com/path');
+
+        $this->assertSame('', $field->getValue());
+        $this->assertFieldIsInvalid($field);
+    }
+
+    public function testCorrectedInputValidatesAfterInvalidInput(): void
+    {
+        $field = ExternalURLField::create('Website');
+        $field->setValue('http://exa mple.com/path');
+        $this->assertFieldIsInvalid($field);
+
+        $field->setValue('https://user:pass@example.com/path');
+        $this->assertSame('https://example.com/path', $field->getValue());
+        $this->assertSame('https://example.com/path', $field->getFormattedValue());
+        $this->assertTrue($field->validate()->isValid());
+    }
+
+    public static function provideClearedValue(): array
+    {
+        return [
+            'empty string' => [''],
+            'null' => [null],
+        ];
+    }
+
+    /**
+     * Clearing the field after invalid input is an intentional empty value, so it
+     * validates.
+     */
+    #[DataProvider('provideClearedValue')]
+    public function testClearedValueValidatesAfterInvalidInput(?string $cleared): void
+    {
+        $field = ExternalURLField::create('Website');
+        $field->setValue('http://exa mple.com/path');
+        $this->assertFieldIsInvalid($field);
+
+        $field->setValue($cleared);
+        $this->assertSame($cleared, $field->getFormattedValue());
+        $this->assertTrue($field->validate()->isValid());
+    }
+
+    // ---------------------------------------------------------------- Host removal
+
+    public static function provideRegexConfig(): array
+    {
+        return [
+            'default regex' => ['default'],
+            'custom regex accepting anything' => ['%.*%'],
+            'regex disabled' => [null],
+        ];
+    }
+
+    public static function provideHostRemovalWithoutReplacement(): array
+    {
+        $cases = [];
+        foreach (static::provideRegexConfig() as $regexName => [$regex])
+        {
+            $cases["http, $regexName"] = ['http://www.example.com/path', $regex];
+            $cases["https, $regexName"] = ['https://www.example.com/path', $regex];
+            $cases["scheme-less, $regexName"] = ['www.example.com/path', $regex];
+        }
+        return $cases;
+    }
+
+    /**
+     * Removing the host leaves an http(s) url with no host. The field rejects it,
+     * rather than letting the uri builder fill in `localhost`, a destination nobody
+     * entered or configured.
+     */
+    #[DataProvider('provideHostRemovalWithoutReplacement')]
+    public function testHostRemovalWithoutReplacementFailsValidation(string $input, ?string $regex): void
+    {
+        $field = ExternalURLField::create('Website');
+        $field->setConfig('removeparts', ['host' => true]);
+        $this->configureRegex($field, $regex);
+        $field->setValue($input);
+
+        $this->assertStringNotContainsString('localhost', (string) $field->getValue());
+        $this->assertSame('', $field->getValue());
+        $this->assertFieldIsInvalid($field);
+    }
+
+    /**
+     * A host configured in `defaultparts` replaces the removed host.
+     */
+    #[DataProvider('provideRegexConfig')]
+    public function testHostRemovalWithConfiguredReplacement(?string $regex): void
+    {
+        $field = ExternalURLField::create('Website');
+        $field->setConfig('removeparts', ['host' => true]);
+        $field->setConfig('defaultparts', ['host' => 'example.org']);
+        $this->configureRegex($field, $regex);
+        $field->setValue('https://www.example.com/path?arg=value');
+
+        $this->assertSame('https://example.org/path?arg=value', $field->getValue());
+        $this->assertTrue($field->validate()->isValid());
+    }
+
+    // ---------------------------------------------------------------- Helpers
+
+    /**
+     * @param string|null $regex `default` keeps the field's default regex, null disables it
+     */
+    protected function configureRegex(ExternalURLField $field, ?string $regex): void
+    {
+        if ($regex === 'default')
+        {
+            return;
+        }
+        $field->setConfig('validregex', $regex);
+    }
+
+    protected function assertFieldIsInvalid(ExternalURLField $field): void
+    {
+        $result = $field->validate();
+        $this->assertFalse($result->isValid());
+
+        $messages = $result->getMessages();
+        $this->assertCount(1, $messages);
+        $message = reset($messages);
+        $this->assertSame('Website', $message['fieldName']);
+        $this->assertSame('Please enter a valid URL', $message['message']);
     }
 }

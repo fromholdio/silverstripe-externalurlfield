@@ -117,7 +117,7 @@ Urls saved by the field, and the `Nice` and `NoWWW` template output, are built a
 * characters that are not allowed in a url are percent-encoded, so `/a b` becomes `/a%20b`, while existing encoding such as `%20` is kept as it is
 * a query or fragment of `0`, such as `#0`, is kept
 
-Input that cannot form a valid url, such as a host containing a space, is cleared by the field, the same as input `parse_url` cannot read. `Nice` and `NoWWW` return an empty string for such a value.
+Input that cannot form a valid url fails the field's validation with "Please enter a valid URL", even when the field is optional and whatever `validregex` is set to. This covers a host containing a space or backslash, input `parse_url` cannot read such as a port above 65535, and an `http` or `https` url left without a host because `removeparts` removes it and `defaultparts` sets no replacement host. The field keeps an empty value, so the input is never saved without the configured parts removed, but redisplays what was entered so it can be corrected. Submitting an empty field is still an intentional clear. `Nice` and `NoWWW` return an empty string for a stored value that cannot form a valid url.
 
 ## Running the tests
 
