@@ -2,9 +2,12 @@
 
 namespace Fromholdio\ExternalURLField;
 
+use GuzzleHttp\Psr7\Exception\MalformedUriException;
+use GuzzleHttp\Psr7\Uri;
 use SilverStripe\Core\Validation\ValidationResult;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Model\ModelData;
+use SilverStripe\ORM\DataObjectInterface;
 
 /**
  * ExternalURLField
@@ -45,6 +48,14 @@ class ExternalURLField extends TextField
      * @var array
      */
     protected $config;
+
+    /**
+     * The last non-empty value set that could not be rebuilt into a url, kept so the
+     * field can redisplay it, return it as form data and fail validation. The field's
+     * own value is left empty and its saveInto() skips it. Null when the value was
+     * rebuilt or intentionally empty.
+     */
+    protected ?string $unbuildableValue = null;
 
     public function __construct($name, $title = null, $value = null)
     {
@@ -130,11 +141,60 @@ class ExternalURLField extends TextField
      */
     public function setValue($value, $data = null): self
     {
+        $this->unbuildableValue = null;
         if (!empty($value)) {
-            $value = $this->rebuildURL($value);
+            $rebuiltValue = $this->rebuildURL($value);
+            if ($rebuiltValue === '')
+            {
+                $this->unbuildableValue = (string) $value;
+            }
+            $value = $rebuiltValue;
         }
         parent::setValue($value, $data);
         return $this;
+    }
+
+    /**
+     * Redisplay input that could not be rebuilt, so submitting the form again does
+     * not clear a saved url without the user knowing.
+     */
+    public function getFormattedValue(): mixed
+    {
+        if (!is_null($this->unbuildableValue))
+        {
+            return $this->unbuildableValue;
+        }
+        return parent::getFormattedValue();
+    }
+
+    /**
+     * Return input that could not be rebuilt, so the form data stored for a failed
+     * submission restores it and the restored field fails validation again. Callers
+     * that use this value without validating can receive the input as entered,
+     * credentials included.
+     *
+     * @return mixed
+     */
+    public function dataValue()
+    {
+        if (!is_null($this->unbuildableValue))
+        {
+            return $this->unbuildableValue;
+        }
+        return parent::dataValue();
+    }
+
+    /**
+     * Leave the record's url unchanged for input that could not be rebuilt, so it is
+     * neither saved nor clears the saved url, even when called without validating.
+     */
+    public function saveInto(DataObjectInterface $record)
+    {
+        if (!is_null($this->unbuildableValue))
+        {
+            return;
+        }
+        parent::saveInto($record);
     }
 
     /**
@@ -166,18 +226,33 @@ class ExternalURLField extends TextField
                 $parts[$part] = $default;
             }
         }
-        return http_build_url($defaults, $parts);
+        //an http(s) url without a host is not valid, abort rather than let the uri builder default to localhost
+        $scheme = strtolower($parts['scheme'] ?? '');
+        if (($scheme === 'http' || $scheme === 'https') && ($parts['host'] ?? '') === '')
+        {
+            return '';
+        }
+        try
+        {
+            return (string) Uri::fromParts($parts);
+        }
+        catch (MalformedUriException $e)
+        {
+            //can't build a valid url from the parts, such as a host containing a space, abort
+            return '';
+        }
     }
 
     /**
      * Server side validation, using a regular expression.
+     * A value that could not be rebuilt into a url is always invalid, whatever the regular expression.
      */
     public function validate(): ValidationResult
     {
         $result = parent::validate();
         $this->value = trim($this->value ?? '');
         $regex = $this->config['validregex'];
-        if ($this->value && $regex && !preg_match($regex, $this->value ?? '')) {
+        if (!is_null($this->unbuildableValue) || ($this->value && $regex && !preg_match($regex, $this->value ?? ''))) {
             $result->addFieldError(
                 $this->name,
                 _t('ExternalURLField.VALIDATION', "Please enter a valid URL"),

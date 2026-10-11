@@ -2,6 +2,8 @@
 
 namespace Fromholdio\ExternalURLField;
 
+use GuzzleHttp\Psr7\Exception\MalformedUriException;
+use GuzzleHttp\Psr7\Uri;
 use SilverStripe\Forms\FormField;
 use SilverStripe\ORM\FieldType\DBVarchar;
 
@@ -34,7 +36,7 @@ class ExternalURL extends DBVarchar
                 foreach ($remove as $part) {
                     unset($parts[$part]);
                 }
-                $nice = http_build_url($parts);
+                $nice = $this->buildURL($parts);
             }
         }
         return $nice;
@@ -66,8 +68,33 @@ class ExternalURL extends DBVarchar
                 if (!parse_url($this->value, PHP_URL_SCHEME)) {
                     unset($parts['scheme']);
                 }
-                $url = http_build_url($parts);
+                $url = $this->buildURL($parts);
             }
+        }
+        return $url;
+    }
+
+    /**
+     * Build a URL from parse_url() parts.
+     *
+     * A URI puts "//" before its host, which a value without a scheme should not
+     * show, so "www.example.com/path" stays as it is. Parts that cannot form a
+     * valid URI, such as a host containing a space, give an empty string.
+     */
+    protected function buildURL(array $parts): string
+    {
+        try
+        {
+            $uri = Uri::fromParts($parts);
+        }
+        catch (MalformedUriException $e)
+        {
+            return '';
+        }
+        $url = (string) $uri;
+        if ($uri->getScheme() === '' && str_starts_with($url, '//'))
+        {
+            $url = substr($url, 2);
         }
         return $url;
     }
