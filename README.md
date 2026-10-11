@@ -15,7 +15,7 @@ composer require fromholdio/silverstripe-externalurlfield "*@stable"
 ## Requirements
 
 * SilverStripe ^6
-* guzzlehttp/psr7 ^2.7 (also required by SilverStripe framework)
+* guzzlehttp/psr7 ^2.13.1 (also required by SilverStripe framework; earlier 2.x releases accept malformed hosts that the field's validation relies on Guzzle to reject)
 
 Earlier versions built urls with the abandoned [jakeasmith/http_build_url](https://github.com/jakeasmith/http_build_url) polyfill. This module no longer requires it, so projects that call `http_build_url` themselves need to require it directly.
 
