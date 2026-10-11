@@ -106,3 +106,23 @@ $field->setConfig("html5validation", false);
 ```
 
 Disabling html5 validation is particularly useful if you want to allow users to enter urls that have no scheme/protocol e.g: `mywebsite.com` instead of `http://www.mywebsite.com`.
+
+## Running the tests
+
+The PHPUnit suite lives in `tests/php` and runs on PHP 8.3 and 8.5. SilverStripe's test bootstrap needs a database connection, even though these tests do not write to it.
+
+From a standalone clone of this module:
+
+```sh
+composer install
+SS_DATABASE_CLASS=MySQLDatabase SS_DATABASE_SERVER=127.0.0.1 SS_DATABASE_USERNAME=root \
+SS_DATABASE_PASSWORD=root SS_DATABASE_NAME=SS_tests vendor/bin/phpunit
+```
+
+From a SilverStripe project that has the module installed:
+
+```sh
+SS_PHPUNIT_FLUSH=1 vendor/bin/phpunit vendor/fromholdio/silverstripe-externalurlfield/tests/php
+```
+
+`SS_PHPUNIT_FLUSH=1` rebuilds the class manifest so the suite's test-only classes are found. The GitHub Actions workflow in `.github/workflows/tests.yml` runs the standalone suite against MySQL on both PHP versions.
