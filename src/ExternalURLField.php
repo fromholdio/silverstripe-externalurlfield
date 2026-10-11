@@ -2,6 +2,8 @@
 
 namespace Fromholdio\ExternalURLField;
 
+use GuzzleHttp\Psr7\Exception\MalformedUriException;
+use GuzzleHttp\Psr7\Uri;
 use SilverStripe\Core\Validation\ValidationResult;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Model\ModelData;
@@ -166,7 +168,15 @@ class ExternalURLField extends TextField
                 $parts[$part] = $default;
             }
         }
-        return http_build_url($defaults, $parts);
+        try
+        {
+            return (string) Uri::fromParts($parts);
+        }
+        catch (MalformedUriException $e)
+        {
+            //can't build a valid url from the parts, such as a host containing a space, abort
+            return '';
+        }
     }
 
     /**

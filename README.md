@@ -2,7 +2,7 @@
 
 Provides a `DBField` and `FormField` for handling external URLs.
 
-Validate and tidy urls as they are captured from users. Configuration is highly flexible. Makes use of php's `parse_url` and `http_build_url` to do the actual work.
+Validate and tidy urls as they are captured from users. Configuration is highly flexible. Makes use of php's `parse_url` and the `Uri` class from [guzzlehttp/psr7](https://github.com/guzzle/psr7) to do the actual work.
 
 ## Installation
 
@@ -14,9 +14,10 @@ composer require fromholdio/silverstripe-externalurlfield "*@stable"
 
 ## Requirements
 
-Makes use of the `http_build_url` function from the [PECL pecl_http library](http://php.net/manual/en/ref.http.php). However the module's composer requirements include a [PHP fallback/shim/polyfill](https://github.com/jakeasmith/http_build_url). The composer replacement does check for the presence of `http_build_url`.
-
 * SilverStripe ^6
+* guzzlehttp/psr7 ^2.7 (also required by SilverStripe framework)
+
+Earlier versions built urls with the abandoned [jakeasmith/http_build_url](https://github.com/jakeasmith/http_build_url) polyfill. This module no longer requires it, so projects that call `http_build_url` themselves need to require it directly.
 
 ## DataObject / Template Usage
 
@@ -106,6 +107,17 @@ $field->setConfig("html5validation", false);
 ```
 
 Disabling html5 validation is particularly useful if you want to allow users to enter urls that have no scheme/protocol e.g: `mywebsite.com` instead of `http://www.mywebsite.com`.
+
+### How urls are tidied
+
+Urls saved by the field, and the `Nice` and `NoWWW` template output, are built as valid URIs:
+
+* the scheme and host are lowercased, so `HTTPS://WWW.Example.COM/Path` becomes `https://www.example.com/Path`
+* a port that is the default for the scheme is left out, so `https://example.com:443/` becomes `https://example.com/`
+* characters that are not allowed in a url are percent-encoded, so `/a b` becomes `/a%20b`, while existing encoding such as `%20` is kept as it is
+* a query or fragment of `0`, such as `#0`, is kept
+
+Input that cannot form a valid url, such as a host containing a space, is cleared by the field, the same as input `parse_url` cannot read. `Nice` and `NoWWW` return an empty string for such a value.
 
 ## Running the tests
 
