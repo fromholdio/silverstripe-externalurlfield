@@ -92,6 +92,12 @@ class ExternalURLTest extends SapphireTest
         );
     }
 
+    public function testNiceTemplateKeepsSchemelessValueSchemeless(): void
+    {
+        $record = TestObject::create(['Website' => 'www.example.com/path/page?arg=value#anchor']);
+        $this->assertSame('www.example.com/path/page', $this->renderTemplate('$Website.Nice', $record));
+    }
+
     // ---------------------------------------------------------------- PHP casting
 
     public function testDomainIsCastToExternalURL(): void
@@ -120,6 +126,22 @@ class ExternalURLTest extends SapphireTest
                 'https://user:pass@example.com:8443/path/page?arg=value&other=2#anchor',
             ],
             'https without www is unchanged' => ['https://example.com/path', 'https://example.com/path'],
+            'scheme-less query of zero' => ['www.example.com/?0', 'example.com/?0'],
+            'fragment of zero' => ['https://www.example.com/#0', 'https://example.com/#0'],
+            'scheme-less value keeps a port that matches a scheme default' => [
+                'www.example.com:80/path',
+                'example.com:80/path',
+            ],
+            'default port for the scheme is omitted' => ['http://www.example.com:80/path', 'http://example.com/path'],
+            'scheme and host are lowercased, path keeps its case' => [
+                'HTTP://WWW.Example.COM/Path',
+                'http://example.com/Path',
+            ],
+            'characters not allowed in a URL are percent-encoded' => [
+                'https://www.example.com/a b?discount=50%',
+                'https://example.com/a%20b?discount=50%25',
+            ],
+            'invalid hostname' => ['http://www.exa mple.com/path', ''],
             'empty value' => ['', ''],
         ];
     }
@@ -135,6 +157,38 @@ class ExternalURLTest extends SapphireTest
 
         $this->assertInstanceOf(ExternalURL::class, $field);
         $this->assertSame($expected, $field->NoWWW());
+    }
+
+    public static function provideNice(): array
+    {
+        return [
+            'README url' => [self::README_URL, 'www.hostname.com/path'],
+            'hostname only' => ['https://www.example.com', 'www.example.com'],
+            'scheme-less hostname and path' => ['www.example.com/path/page?arg=value#anchor', 'www.example.com/path/page'],
+            'port, query and fragment are removed' => [
+                'https://example.com:8443/path?arg=value#anchor',
+                'example.com/path',
+            ],
+            'host is lowercased, path keeps its case' => ['HTTPS://WWW.Example.COM/Path', 'www.example.com/Path'],
+            'characters not allowed in a URL are percent-encoded' => ['https://example.com/a b', 'example.com/a%20b'],
+            'existing percent-encoding is not encoded again' => ['https://example.com/a%20b', 'example.com/a%20b'],
+            'path of zero' => ['https://example.com/0', 'example.com/0'],
+            'invalid hostname' => ['http://exa mple.com/path', ''],
+            'empty value' => ['', ''],
+        ];
+    }
+
+    /**
+     * Nice is the hostname and path only, without a scheme or the "//" that
+     * precedes a hostname in a full URL.
+     */
+    #[DataProvider('provideNice')]
+    public function testNice(string $value, string $expected): void
+    {
+        $field = DBField::create_field('ExternalURL', $value);
+
+        $this->assertInstanceOf(ExternalURL::class, $field);
+        $this->assertSame($expected, $field->Nice());
     }
 
     // ---------------------------------------------------------------- Helpers
