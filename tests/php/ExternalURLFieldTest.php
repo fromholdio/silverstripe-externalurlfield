@@ -4,7 +4,12 @@ namespace Fromholdio\ExternalURLField\Tests;
 
 use Fromholdio\ExternalURLField\ExternalURLField;
 use PHPUnit\Framework\Attributes\DataProvider;
+use SilverStripe\Control\Controller;
+use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Control\Session;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\Form;
 
 /**
  * How `ExternalURLField` tidies the URLs users enter.
@@ -162,8 +167,8 @@ class ExternalURLFieldTest extends SapphireTest
     /**
      * Input that cannot form a valid URI fails validation, even on an optional field,
      * rather than throwing out of `setValue()` or being saved as an empty value. The
-     * field's value stays empty, so the input is never stored without the configured
-     * parts, such as credentials, removed. The input is redisplayed, so submitting the
+     * field's own value stays empty. The input is redisplayed, and `dataValue()`
+     * returns it so a failed submission's form data can restore it, so submitting the
      * form again fails validation again instead of clearing a saved url.
      */
     #[DataProvider('provideInvalidInput')]
@@ -173,7 +178,7 @@ class ExternalURLFieldTest extends SapphireTest
         $field->setValue($input);
 
         $this->assertSame('', $field->getValue());
-        $this->assertSame('', $field->dataValue());
+        $this->assertSame($input, $field->dataValue());
         $this->assertSame($input, $field->getFormattedValue());
         $this->assertSame($input, $field->getAttributes()['value']);
         $this->assertFieldIsInvalid($field);
@@ -216,6 +221,7 @@ class ExternalURLFieldTest extends SapphireTest
 
         $field->setValue('https://user:pass@example.com/path');
         $this->assertSame('https://example.com/path', $field->getValue());
+        $this->assertSame('https://example.com/path', $field->dataValue());
         $this->assertSame('https://example.com/path', $field->getFormattedValue());
         $this->assertTrue($field->validate()->isValid());
     }
@@ -240,6 +246,7 @@ class ExternalURLFieldTest extends SapphireTest
         $this->assertFieldIsInvalid($field);
 
         $field->setValue($cleared);
+        $this->assertSame($cleared, $field->dataValue());
         $this->assertSame($cleared, $field->getFormattedValue());
         $this->assertTrue($field->validate()->isValid());
     }
@@ -301,7 +308,74 @@ class ExternalURLFieldTest extends SapphireTest
         $this->assertTrue($field->validate()->isValid());
     }
 
+    // ---------------------------------------------------------------- Form data
+
+    public static function provideRejectedFormData(): array
+    {
+        return [
+            'space in hostname' => ['http://exa mple.com/path', []],
+            'credentials before an invalid hostname' => ['http://user:pass@exa\\mple.com/path', []],
+            'port parse_url cannot read' => ['http://example.com:99999/path', []],
+            'host removed without replacement' => ['https://www.example.com/path', ['host' => true]],
+        ];
+    }
+
+    /**
+     * After a failed submission the framework stores `Form::getData()` in the session
+     * and redirects, and the next form restores it. The rejected input has to be in
+     * that data, so the restored field redisplays it and fails validation again rather
+     * than coming back empty, which would let an unchanged resubmission clear a saved url.
+     */
+    #[DataProvider('provideRejectedFormData')]
+    public function testRejectedInputSurvivesFormStateRestore(string $input, array $removeParts): void
+    {
+        $controller = $this->createControllerWithSession();
+
+        $submittedForm = $this->createForm($controller, $removeParts);
+        $submittedForm->loadDataFrom(['Website' => $input], true);
+        $this->assertSame($input, $submittedForm->getData()['Website']);
+        $submittedForm->setSessionData($submittedForm->getData());
+
+        //a new form restores the stored data as it is constructed
+        $restoredField = $this->createForm($controller, $removeParts)->Fields()->dataFieldByName('Website');
+        $this->assertSame('', $restoredField->getValue());
+        $this->assertSame($input, $restoredField->dataValue());
+        $this->assertSame($input, $restoredField->getFormattedValue());
+        $this->assertFieldIsInvalid($restoredField);
+    }
+
+    /**
+     * Input the field accepts reaches the form data rebuilt, with configured parts
+     * such as credentials removed.
+     */
+    public function testAcceptedInputFormDataIsRebuilt(): void
+    {
+        $form = $this->createForm($this->createControllerWithSession(), []);
+        $form->loadDataFrom(['Website' => 'https://user:pass@example.com/path'], true);
+
+        $this->assertSame('https://example.com/path', $form->getData()['Website']);
+    }
+
     // ---------------------------------------------------------------- Helpers
+
+    protected function createControllerWithSession(): Controller
+    {
+        $request = new HTTPRequest('GET', '/');
+        $request->setSession(new Session([]));
+        $controller = Controller::create();
+        $controller->setRequest($request);
+        return $controller;
+    }
+
+    protected function createForm(Controller $controller, array $removeParts): Form
+    {
+        $field = ExternalURLField::create('Website');
+        if ($removeParts)
+        {
+            $field->setConfig('removeparts', $removeParts);
+        }
+        return Form::create($controller, 'Form', FieldList::create($field), FieldList::create());
+    }
 
     /**
      * @param string|null $regex `default` keeps the field's default regex, null disables it

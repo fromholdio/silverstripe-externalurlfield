@@ -7,6 +7,7 @@ use GuzzleHttp\Psr7\Uri;
 use SilverStripe\Core\Validation\ValidationResult;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Model\ModelData;
+use SilverStripe\ORM\DataObjectInterface;
 
 /**
  * ExternalURLField
@@ -50,8 +51,9 @@ class ExternalURLField extends TextField
 
     /**
      * The last non-empty value set that could not be rebuilt into a url, kept so the
-     * field can redisplay it and fail validation. The field's value is left empty, so
-     * this input is never saved. Null when the value was rebuilt or intentionally empty.
+     * field can redisplay it, return it as form data and fail validation. The field's
+     * own value is left empty and its saveInto() skips it. Null when the value was
+     * rebuilt or intentionally empty.
      */
     protected ?string $unbuildableValue = null;
 
@@ -163,6 +165,36 @@ class ExternalURLField extends TextField
             return $this->unbuildableValue;
         }
         return parent::getFormattedValue();
+    }
+
+    /**
+     * Return input that could not be rebuilt, so the form data stored for a failed
+     * submission restores it and the restored field fails validation again. Callers
+     * that use this value without validating can receive the input as entered,
+     * credentials included.
+     *
+     * @return mixed
+     */
+    public function dataValue()
+    {
+        if (!is_null($this->unbuildableValue))
+        {
+            return $this->unbuildableValue;
+        }
+        return parent::dataValue();
+    }
+
+    /**
+     * Leave the record's url unchanged for input that could not be rebuilt, so it is
+     * neither saved nor clears the saved url, even when called without validating.
+     */
+    public function saveInto(DataObjectInterface $record)
+    {
+        if (!is_null($this->unbuildableValue))
+        {
+            return;
+        }
+        parent::saveInto($record);
     }
 
     /**
